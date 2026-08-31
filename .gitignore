@@ -1,4 +1,5 @@
 .env
 burnbox
 burnbox.exe
-CLAUDE.md
+*.md
+*.exe
