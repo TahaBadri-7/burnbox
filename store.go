@@ -1,37 +1,39 @@
 package main
 
-import "sync"
+import (
+	"context"
+	"time"
 
-var (
-	mu      sync.Mutex
-	secrets = make(map[string]secret)
+	"github.com/redis/go-redis/v9"
 )
 
-type secret struct {
-	ciphertext string
-	creatorID  string
+var rdb *redis.Client
+
+func initRedis(addr string) {
+	rdb = redis.NewClient(&redis.Options{
+		Addr: addr,
+	})
 }
 
-func save(shareID string, s secret) {
-	mu.Lock()
-	defer mu.Unlock()
-	secrets[shareID] = s
+func save(ctx context.Context, shareID, ciphertext string, ttl time.Duration) error {
+	return rdb.Set(ctx, "secret:"+shareID, ciphertext, ttl).Err()
 }
 
-// burn returns the ciphertext for id and removes it, so it can only
-// succeed once. Returns ok=false if the id is unknown or already burned.
+func burn(ctx context.Context, shareID string) (string, error) {
+	return rdb.GetDel(ctx, "secret:"+shareID).Result()
+}
 
-func burn(id string) (string, bool) {
+// burnBroken is the naive version: read, then delete, as two separate trips
+// to Redis. Kept only to demonstrate the race it creates. Never used in production.
+func burnBroken(ctx context.Context, shareID string) (string, error) {
+	key := "secret:" + shareID
 
-	mu.Lock()
-	defer mu.Unlock()
-
-	s, ok := secrets[id]
-
-	if !ok {
-		return "", false
+	v, err := rdb.Get(ctx, key).Result()
+	if err != nil {
+		return "", err
 	}
 
-	delete(secrets, id)
-	return s.ciphertext, true
+	rdb.Del(ctx, key)
+
+	return v, nil
 }
