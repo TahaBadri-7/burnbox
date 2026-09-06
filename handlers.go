@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"net"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -129,3 +130,33 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(st)
 }
 
+// clientIP strips the port off RemoteAddr, which arrives as "1.2.3.4:54321".
+func clientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
+// rateLimited wraps a handler so it only runs if the caller is under the limit.
+func rateLimited(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+
+		ok, err := allow(ctx, clientIP(r), 10, time.Minute)
+		if err != nil {
+			http.Error(w, "unavailable", http.StatusServiceUnavailable)
+			return
+		}
+
+		if !ok {
+			w.Header().Set("Retry-After", "60")
+			http.Error(w, "Too many requests", http.StatusTooManyRequests)
+			return
+		}
+
+		next(w, r)
+	}
+}

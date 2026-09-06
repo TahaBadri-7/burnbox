@@ -1,6 +1,14 @@
+# personal working notes — not published (yet)
+CLAUDE.md
+DECISIONS.md
+
+# secrets
 .env
+
+# build output
 burnbox
 burnbox.exe
-*.md
 *.exe
+
+# scratch
 shared-state-and-redis.html

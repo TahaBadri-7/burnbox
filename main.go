@@ -29,9 +29,11 @@ func main() {
 
 	mux.HandleFunc("GET /healthz", handleHealth)
 
-	mux.HandleFunc("POST /api/secrets", handleCreate)
+	// mux.HandleFunc("POST /api/secrets", handleCreate)
+	mux.HandleFunc("POST /api/secrets", rateLimited(handleCreate))
 
-	mux.HandleFunc("POST /api/secrets/{id}/burn", handleBurn)
+	// mux.HandleFunc("POST /api/secrets/{id}/burn", handleBurn)
+	mux.HandleFunc("POST /api/secrets/{id}/burn", rateLimited(handleBurn))
 
 	mux.HandleFunc("GET /api/secrets/{id}/status", handleStatus)
 

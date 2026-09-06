@@ -1,35 +1,344 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>burnbox</title>
-  <style>
-    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
-    textarea { width: 100%; height: 6rem; font: inherit; padding: .5rem; }
-    button { font: inherit; padding: .6rem 1.2rem; margin-top: .75rem; cursor: pointer; }
-    .out { margin-top: 2rem; display: none; }
-    .link { background: #f4f4f4; padding: .75rem; word-break: break-all; font-family: monospace; font-size: .85rem; }
-    .label { font-weight: 600; margin-top: 1rem; }
-    .hint { color: #666; font-size: .85rem; margin-top: .25rem; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>burnbox — send a secret that deletes itself</title>
+<meta name="description" content="Share a password or key through a link that works exactly once. Encrypted in your browser; the key never reaches the server.">
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 </head>
 <body>
-  <h1>burnbox</h1>
-  <p>Paste a secret. Get a link that works exactly once.</p>
 
-  <textarea id="secret" placeholder="hunter2"></textarea>
-  <button id="create">Create link</button>
-
-  <div class="out" id="out">
-    <div class="label">Send this link</div>
-    <div class="link" id="shareLink"></div>
-    <div class="hint">Works once. The key is in the part after the #, which never reaches the server.</div>
-
-    <div class="label">Keep this link</div>
-    <div class="link" id="creatorLink"></div>
-    <div class="hint">Your copy, for checking whether it has been read.</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="flame">🔥</span> burnbox</a>
+    <nav class="header-links">
+      <a href="#how">How it works</a>
+      <a href="#trust">Trust</a>
+      <a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source</a>
+    </nav>
   </div>
+</header>
 
-  <script src="/create.js"></script>
+<main>
+  <div class="wrap">
+
+    <!-- ============================ hero ============================ -->
+    <section class="hero">
+      <h1>Send a secret that deletes itself</h1>
+      <p class="lede">
+        Paste a password, an API key, anything you shouldn't be sending over chat.
+        You get a link that works <strong>exactly once</strong> — then it's gone for good.
+      </p>
+      <div class="trust-strip">
+        <span class="pill"><span class="dot"></span> Encrypted in your browser</span>
+        <span class="pill">No account needed</span>
+        <span class="pill">No cookies, no tracking</span>
+        <span class="pill">Open source</span>
+      </div>
+    </section>
+
+    <!-- ============================ create ============================ -->
+    <section aria-labelledby="create-title">
+      <div class="card">
+        <div class="card-head">
+          <h2 id="create-title">Create a secret</h2>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label class="label" for="secret">Your secret</label>
+            <span class="counter" id="counter" aria-live="polite">10,000 characters left</span>
+          </div>
+          <textarea id="secret" spellcheck="false" autocomplete="off"
+                    placeholder="Paste the password, key, or note you need to send…"></textarea>
+          <div class="meter" id="meter"><span id="meterFill"></span></div>
+        </div>
+
+        <div class="form-foot">
+          <div class="settings">
+            <span class="setting">Expires in <strong>24 hours</strong></span>
+            <span class="setting">Readable <strong>once</strong></span>
+            <span class="setting">Text only <strong>for now</strong></span>
+          </div>
+          <button class="btn btn-primary btn-lg" id="create" type="button">Create secret link</button>
+        </div>
+
+        <div id="createError" class="alert alert-danger hidden" style="margin-top:1rem" role="alert">
+          <span class="icon">!</span>
+          <div><strong>Couldn't create the link.</strong> <span id="createErrorText"></span></div>
+        </div>
+
+        <!-- output -->
+        <div class="output hidden" id="out">
+          <div class="alert alert-ok" style="margin-bottom:1.25rem">
+            <span class="icon">✓</span>
+            <div><strong>Encrypted and stored.</strong> Your secret was locked on this device before anything was sent.</div>
+          </div>
+
+          <div class="link-block">
+            <div class="link-head">
+              <span class="label">Send this link <span class="qualifier">— to the person receiving the secret</span></span>
+              <button class="btn btn-secondary btn-sm" id="copyShare" type="button">Copy</button>
+            </div>
+            <div class="link-box share">
+              <span class="value" id="shareLink"></span>
+            </div>
+            <p class="hint">
+              Works once. Copy it <strong>whole</strong> — everything after the <code>#</code> is the decryption
+              key, and the link is useless without it.
+            </p>
+          </div>
+
+          <div class="link-block">
+            <div class="link-head">
+              <span class="label">Keep this link <span class="qualifier">— for you, to check if it's been read</span></span>
+              <button class="btn btn-secondary btn-sm" id="copyCreator" type="button">Copy</button>
+            </div>
+            <div class="link-box">
+              <span class="value" id="creatorLink"></span>
+            </div>
+            <p class="hint">Shows read / unread only. It can never show you the secret.</p>
+          </div>
+
+          <div class="alert alert-warn" style="margin-top:1.25rem">
+            <span class="icon">⚠</span>
+            <div>
+              <strong>We can't recover either link.</strong>
+              They aren't stored anywhere on this page after you leave, and we have no way to look them up.
+            </div>
+          </div>
+
+          <div style="margin-top:1.25rem">
+            <button class="btn btn-ghost btn-sm" id="another" type="button">Create another</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ how it works ============================ -->
+    <section id="how">
+      <div class="section-title">
+        <span class="eyebrow">How it works</span>
+        <h2>Three steps, and the key never leaves your device</h2>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="n">1</span>
+          <h3>Locked here, not there</h3>
+          <p>Your browser generates a random key and encrypts the secret with it before any network request happens.</p>
+        </div>
+        <div class="step">
+          <span class="n">2</span>
+          <h3>We store the locked box</h3>
+          <p>Only the encrypted result is sent. We store it against a random ID with a 24-hour timer.</p>
+        </div>
+        <div class="step">
+          <span class="n">3</span>
+          <h3>Opened once, then destroyed</h3>
+          <p>The reader's browser fetches the box and unlocks it locally. Our copy is deleted in the same instant.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1.25rem">
+        <div class="url-anatomy">
+          <span class="seen">burnbox.page/s/k3Jq7fVn2pXwLm8Rt4</span><span class="unseen">#Xy9kLm2pQr7wAe4Nb8Ts</span>
+          <div class="legend">
+            <span><i class="k-seen"></i> sent to our server</span>
+            <span><i class="k-unseen"></i> never sent — the browser keeps this part to itself</span>
+          </div>
+        </div>
+        <p class="hint">
+          Everything after the <code>#</code> is called the URL fragment. Browsers have never sent it
+          with a request — it's how <code>#section</code> links have always worked. That's not a promise
+          we're making; it's a property of the web we're relying on.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================ trust ============================ -->
+    <section id="trust">
+      <div class="section-title">
+        <span class="eyebrow">Trust</span>
+        <h2>Exactly what we can and cannot see</h2>
+      </div>
+
+      <div class="split">
+        <div class="card-flat">
+          <h3>What our server never receives</h3>
+          <ul class="list list-no">
+            <li><span class="mark">×</span> Your secret, in readable form</li>
+            <li><span class="mark">×</span> The decryption key</li>
+            <li><span class="mark">×</span> Your name, email, or an account</li>
+            <li><span class="mark">×</span> Cookies or tracking of any kind</li>
+          </ul>
+        </div>
+        <div class="card-flat">
+          <h3>What our server does store</h3>
+          <ul class="list list-yes">
+            <li><span class="mark">•</span> An encrypted blob it cannot open</li>
+            <li><span class="mark">•</span> Two random IDs</li>
+            <li><span class="mark">•</span> A 24-hour expiry timer</li>
+            <li><span class="mark">•</span> Nothing else, and none of it past 24 hours</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert" style="margin-top:.85rem">
+        <span class="icon">◆</span>
+        <div>
+          <strong>The honest caveat.</strong>
+          We serve the JavaScript that does the encryption, so in principle we could publish a version
+          that leaks your key. We can't prove we won't — but that attack would be visible in the page
+          source, and it couldn't reach anything created before it. That's why the
+          <a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">code is public</a> and the
+          page has no third-party scripts to hide behind. Any service claiming this problem doesn't
+          exist is either confused or lying.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ limits ============================ -->
+    <section id="limits">
+      <div class="section-title">
+        <span class="eyebrow">Limits</span>
+        <h2>What this version does and doesn't do</h2>
+      </div>
+
+      <div class="kv card-flat">
+        <div class="kv-row"><span class="k">Maximum secret length</span><span class="v">10,000 characters</span></div>
+        <div class="kv-row"><span class="k">Time before automatic deletion</span><span class="v">24 hours</span></div>
+        <div class="kv-row"><span class="k">Number of reads allowed</span><span class="v">Exactly one</span></div>
+        <div class="kv-row"><span class="k">Supported content</span><span class="v">Text (files are planned)</span></div>
+        <div class="kv-row"><span class="k">Requests per minute</span><span class="v">10 per IP address</span></div>
+        <div class="kv-row"><span class="k">Recovery if a link is lost</span><span class="v">None — by design</span></div>
+      </div>
+    </section>
+
+    <!-- ============================ roadmap ============================ -->
+    <section id="roadmap">
+      <div class="section-title">
+        <span class="eyebrow">Roadmap</span>
+        <h2>What's being built next</h2>
+      </div>
+
+      <div class="roadmap">
+        <div class="roadmap-item">
+          <span class="tag badge badge-next">Next</span>
+          <div class="body">
+            <h3>Split-channel delivery</h3>
+            <p>Send the link one way and a short code another — over the phone, say. Without the code the
+               secret is mathematically unopenable, not merely "we refused".</p>
+          </div>
+        </div>
+        <div class="roadmap-item">
+          <span class="tag badge badge-planned">Planned</span>
+          <div class="body">
+            <h3>Read notifications</h3>
+            <p>Optional email the moment your secret is opened, or when it expires unread. Still no account —
+               the address dies with the secret.</p>
+          </div>
+        </div>
+        <div class="roadmap-item">
+          <span class="tag badge badge-planned">Planned</span>
+          <div class="body">
+            <h3>Choose your own expiry</h3>
+            <p>5 minutes to 24 hours, picked when you create the link.</p>
+          </div>
+        </div>
+        <div class="roadmap-item">
+          <span class="tag badge badge-planned">Planned</span>
+          <div class="body">
+            <h3>Small file support</h3>
+            <p>Send a <code>.pdf</code>, <code>.png</code>, <code>.zip</code> or <code>.txt</code> the same
+               way — encrypted in the browser, opened once.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ faq ============================ -->
+    <section id="faq">
+      <div class="section-title">
+        <span class="eyebrow">Questions</span>
+        <h2>Before you paste something important</h2>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>What if I lose the link?</summary>
+          <div class="answer">
+            <p>Then the secret is gone. There's no account to log into and no lookup we can run — the link
+              is the only reference that exists, and the key inside it is the only copy of the key.</p>
+            <p>This is the trade for not being able to read your data ourselves. If we could recover it for
+              you, we could also read it without you.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Will Slack or Outlook destroy the secret by previewing the link?</summary>
+          <div class="answer">
+            <p>No. Opening the link just shows a page with a button on it — nothing is destroyed until
+              somebody actually clicks <em>Reveal</em>.</p>
+            <p>That's deliberate. Chat apps and corporate mail scanners fetch every link they see to build
+              previews. A service that destroyed the secret on page load would have it eaten by a robot
+              before the human ever clicked.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Why is the key in the link instead of on your server?</summary>
+          <div class="answer">
+            <p>Because a key on our server is a key we can use. Putting it after the <code>#</code> means
+              your browser keeps it locally and never transmits it — so the encrypted blob we store is
+              genuinely useless to us.</p>
+            <p>It also means anyone who gets the whole link gets the secret. Treat the link like the
+              password itself.</p>
+          </div>
+        </details>
+        <details>
+          <summary>What happens if someone opens it before the intended person?</summary>
+          <div class="answer">
+            <p>They get the secret, and the real recipient gets "already read". That's the alarm: if your
+              colleague says the link didn't work, assume it was intercepted and rotate the credential.</p>
+            <p>Not knowing is the failure mode of email. Knowing is the point of this.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Is this actually secure, or is that just marketing?</summary>
+          <div class="answer">
+            <p>The encryption is AES-256-GCM, done by your browser's built-in crypto — the same primitive
+              banks and password managers use. The keys come from a cryptographic random source, never a
+              predictable one.</p>
+            <p>What that buys you, precisely: a stolen database, a compromised server, a backup leak, or a
+              legal demand all get unreadable bytes. What it does not buy you is protection from us
+              deliberately publishing bad JavaScript. See the caveat above — we'd rather say it than hide it.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Who made this and why should I believe any of it?</summary>
+          <div class="answer">
+            <p>It's an open-source project built in the open, with the design decisions and their trade-offs
+              written down. You don't have to take any of this on faith — the whole thing is a few hundred
+              lines you can
+              <a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">read yourself</a>,
+              including the part running in your browser right now.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>burnbox — one-time secrets, encrypted in your browser.</span>
+    <span><a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source code</a> &middot; AGPL-3.0</span>
+  </div>
+</footer>
+
+<script src="/create.js"></script>
 </body>
 </html>

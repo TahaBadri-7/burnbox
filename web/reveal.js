@@ -1,3 +1,12 @@
+/* burnbox — reveal page.
+   The key is read from location.hash and never sent anywhere.
+
+   Decryption happens AFTER the burn, deliberately. Decrypting first would let
+   anyone probe an ID with a junk key to learn whether a secret exists without
+   consuming it — a free existence oracle. The cost of this ordering is that a
+   corrupted link destroys the secret, which the page says plainly rather than
+   hiding. */
+
 function fromB64url(s) {
   s = s.replace(/-/g, "+").replace(/_/g, "/");
   while (s.length % 4) s += "=";
@@ -12,57 +21,84 @@ function currentKey() {
   return location.hash.slice(1);
 }
 
-const btn  = document.getElementById("reveal");
-const out  = document.getElementById("secret");
-const warn = document.getElementById("warn");
+const stageEl      = document.getElementById("stage");
+const revealBtn    = document.getElementById("reveal");
+const missingKeyEl = document.getElementById("missingKey");
+const resultEl     = document.getElementById("result");
+const secretEl     = document.getElementById("secret");
+const failureEl    = document.getElementById("failure");
+const failTitleEl  = document.getElementById("failTitle");
+const failTextEl   = document.getElementById("failText");
+const warnBoxEl    = document.getElementById("warnBox");
+const warnTextEl   = document.getElementById("warnText");
+const copyBtn      = document.getElementById("copySecret");
 
-const MISSING_KEY =
-  "This link is missing its key — paste the whole link, including the part after the #.";
-
-// Nothing left to try: hide the button.
-function fail(msg) {
-  warn.textContent = msg;
-  warn.style.display = "block";
-  btn.style.display = "none";
+/* Nothing left to try: replace the whole stage. */
+function fail(title, text) {
+  stageEl.classList.add("hidden");
+  resultEl.classList.add("hidden");
+  failTitleEl.textContent = title;
+  failTextEl.textContent = text;
+  failureEl.classList.remove("hidden");
 }
 
-// Recoverable: leave the button alive.
-function warnOnly(msg) {
-  warn.textContent = msg;
-  warn.style.display = "block";
+/* Recoverable: leave the button alive. */
+function warn(text) {
+  warnTextEl.textContent = text;
+  warnBoxEl.classList.remove("hidden");
 }
+
+function clearWarn() {
+  warnBoxEl.classList.add("hidden");
+}
+
+/* ---------- missing key, before anything is burned ---------- */
 
 if (!currentKey()) {
-  warnOnly(MISSING_KEY);
+  missingKeyEl.classList.remove("hidden");
 }
 
 // Fires when the fragment is edited. No request is made and the script does not
 // re-run, so this is the only signal we get.
 window.addEventListener("hashchange", () => {
-  if (currentKey()) warn.style.display = "none";
+  if (currentKey()) missingKeyEl.classList.add("hidden");
 });
 
-btn.addEventListener("click", async () => {
+/* ---------- reveal ---------- */
+
+revealBtn.addEventListener("click", async () => {
   const keyText = currentKey();
 
   if (!keyText) {
-    warnOnly(MISSING_KEY);
+    missingKeyEl.classList.remove("hidden");
     return;
   }
 
-  btn.disabled = true;
+  clearWarn();
+  revealBtn.disabled = true;
+  revealBtn.textContent = "Opening…";
 
   try {
     const res = await fetch(`/api/secrets/${shareID}/burn`, { method: "POST" });
 
     if (res.status === 404) {
-      fail("This secret has already been read, or it never existed.");
+      fail("This secret is no longer available.",
+        "It has already been read, it expired, or the link was never valid. " +
+        "If you were expecting it, treat it as intercepted and ask the sender to rotate the credential.");
+      return;
+    }
+
+    if (res.status === 429) {
+      warn("Too many requests from your network. Wait a minute and try again — nothing has been destroyed.");
+      revealBtn.disabled = false;
+      revealBtn.textContent = "Reveal the secret";
       return;
     }
 
     if (!res.ok) {
-      warnOnly("Something went wrong. Try again in a moment.");
-      btn.disabled = false;
+      warn("The service is temporarily unavailable. Try again in a moment — nothing has been destroyed.");
+      revealBtn.disabled = false;
+      revealBtn.textContent = "Reveal the secret";
       return;
     }
 
@@ -78,11 +114,33 @@ btn.addEventListener("click", async () => {
 
     const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
 
-    out.textContent = new TextDecoder().decode(plain);
-    out.style.display = "block";
-    btn.style.display = "none";
+    secretEl.textContent = new TextDecoder().decode(plain);
+    stageEl.classList.add("hidden");
+    resultEl.classList.remove("hidden");
 
   } catch (e) {
-    fail("Could not decrypt — the key in the link may be wrong or damaged. The secret has now been destroyed.");
+    fail("Could not decrypt this secret.",
+      "The key in the link is wrong or damaged. The secret has now been destroyed and cannot be recovered — " +
+      "ask the sender to create a new one and copy the link whole.");
   }
+});
+
+/* ---------- copy ---------- */
+
+copyBtn.addEventListener("click", async () => {
+  const original = copyBtn.textContent;
+
+  try {
+    await navigator.clipboard.writeText(secretEl.textContent);
+    copyBtn.textContent = "Copied";
+  } catch (e) {
+    const range = document.createRange();
+    range.selectNodeContents(secretEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    copyBtn.textContent = "Press Ctrl+C";
+  }
+
+  setTimeout(() => { copyBtn.textContent = original; }, 1600);
 });

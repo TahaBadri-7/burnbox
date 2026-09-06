@@ -72,3 +72,18 @@ func burnBroken(ctx context.Context, shareID string) (string, error) {
 
 	return v, nil
 }
+
+func allow(ctx context.Context, ip string, limit int, window time.Duration) (bool, error) {
+	key := "rate:" + ip
+
+	pipe := rdb.TxPipeline()
+	incr := pipe.Incr(ctx, key)
+	pipe.ExpireNX(ctx, key, window)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return false, err
+	}
+
+	return incr.Val() <= int64(limit), nil
+}
+

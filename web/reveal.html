@@ -1,25 +1,106 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>burnbox — reveal</title>
-  <style>
-    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
-    button { font: inherit; padding: .6rem 1.2rem; cursor: pointer; }
-    .secret { background: #f4f4f4; padding: 1rem; word-break: break-all; font-family: monospace; margin-top: 1.5rem; display: none; }
-    .warn { color: #b00; margin-top: 1.5rem; display: none; }
-    .hint { color: #666; font-size: .85rem; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A secret is waiting — burnbox</title>
+<meta name="description" content="Someone sent you a one-time secret. Reading it destroys it.">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 </head>
 <body>
-  <h1>A secret is waiting for you</h1>
-  <p class="hint">Reading it destroys it. There is no second chance, so copy it somewhere safe.</p>
 
-  <button id="reveal">Click to reveal</button>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="flame">🔥</span> burnbox</a>
+    <nav class="header-links">
+      <a href="/#how">How it works</a>
+      <a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source</a>
+    </nav>
+  </div>
+</header>
 
-  <div class="secret" id="secret"></div>
-  <div class="warn" id="warn"></div>
+<main>
+  <div class="wrap centered">
 
-  <script src="/reveal.js"></script>
+    <div class="hero" style="margin-bottom:1.5rem">
+      <h1>Someone sent you a secret</h1>
+      <p class="lede">It can be opened once. After that it's deleted from the server permanently.</p>
+    </div>
+
+    <div class="card">
+
+      <!-- before reveal -->
+      <div id="stage">
+        <div class="alert alert-warn" style="margin-bottom:1.25rem">
+          <span class="icon">⚠</span>
+          <div>
+            <strong>Have somewhere ready to put it.</strong>
+            Once you click, this is the only time it will ever be shown. Refreshing the page will not
+            bring it back.
+          </div>
+        </div>
+
+        <div id="missingKey" class="alert alert-danger hidden" style="margin-bottom:1.25rem" role="alert">
+          <span class="icon">!</span>
+          <div>
+            <strong>This link is missing its key.</strong>
+            It was probably copied without the part after the <code>#</code>. Ask the sender for the whole
+            link — the secret is still safe and unread.
+          </div>
+        </div>
+
+        <div class="reveal-stage">
+          <button class="btn btn-primary btn-lg" id="reveal" type="button">Reveal the secret</button>
+        </div>
+      </div>
+
+      <!-- after reveal -->
+      <div id="result" class="hidden">
+        <div class="link-head">
+          <span class="label">The secret</span>
+          <button class="btn btn-secondary btn-sm" id="copySecret" type="button">Copy</button>
+        </div>
+        <div class="secret-out" id="secret"></div>
+        <div class="alert alert-ok" style="margin-top:1rem">
+          <span class="icon">✓</span>
+          <div><strong>Deleted from the server.</strong> This page is now the only place it exists — copy it before you close the tab.</div>
+        </div>
+      </div>
+
+      <!-- failure -->
+      <div id="failure" class="hidden" role="alert">
+        <div class="alert alert-danger">
+          <span class="icon">!</span>
+          <div><strong id="failTitle"></strong> <span id="failText"></span></div>
+        </div>
+      </div>
+
+      <!-- recoverable problem -->
+      <div id="warnBox" class="alert alert-warn hidden" style="margin-top:1.25rem" role="status">
+        <span class="icon">⚠</span>
+        <div><span id="warnText"></span></div>
+      </div>
+
+    </div>
+
+    <p class="hint" style="text-align:center; margin-top:1.25rem">
+      Never seen this before? <a href="/">burnbox</a> sends passwords through links that work exactly once.
+      The sender's browser encrypted this — our server has never seen what's inside it.
+    </p>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>burnbox — one-time secrets, encrypted in your browser.</span>
+    <span><a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source code</a> &middot; AGPL-3.0</span>
+  </div>
+</footer>
+
+<script src="/reveal.js"></script>
 </body>
 </html>

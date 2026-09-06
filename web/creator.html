@@ -1,33 +1,94 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>burnbox — your secret</title>
-  <style>
-    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
-    .state { font-size: 1.6rem; font-weight: 600; margin: 1.5rem 0 .5rem; }
-    .unread { color: #1a7f37; }
-    .read   { color: #8250df; }
-    .gone   { color: #b00; }
-    .detail { color: #444; }
-    button { font: inherit; padding: .5rem 1rem; margin-top: 1.5rem; cursor: pointer; }
-    .hint { color: #666; font-size: .85rem; margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your secret — burnbox</title>
+<meta name="description" content="Check whether your one-time secret has been read.">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 </head>
 <body>
-  <h1>Your secret</h1>
 
-  <div class="state" id="status">Checking…</div>
-  <div class="detail" id="detail"></div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="flame">🔥</span> burnbox</a>
+    <nav class="header-links">
+      <a href="/#how">How it works</a>
+      <a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source</a>
+    </nav>
+  </div>
+</header>
 
-  <button id="refresh">Check again</button>
+<main>
+  <div class="wrap centered">
 
-  <p class="hint">
-    This page only tells you <em>whether</em> the secret has been opened.
-    It cannot show you the secret — the key was never sent to the server,
-    and it isn't in this link.
-  </p>
+    <div class="hero" style="margin-bottom:1.5rem">
+      <h1>Your secret</h1>
+      <p class="lede">This page tells you whether it has been opened. Nothing more.</p>
+    </div>
 
-  <script src="/creator.js"></script>
+    <div class="card">
+      <div class="card-head">
+        <span class="state" id="status" aria-live="polite">
+          <span class="indicator"></span>
+          <span id="statusText">Checking…</span>
+        </span>
+        <button class="btn btn-secondary btn-sm" id="refresh" type="button">Check again</button>
+      </div>
+
+      <p id="detail" class="hint" style="font-size:.9rem"></p>
+
+      <div class="kv" id="meta">
+        <div class="kv-row">
+          <span class="k">Status</span>
+          <span class="v" id="metaStatus">—</span>
+        </div>
+        <div class="kv-row">
+          <span class="k">Self-destructs</span>
+          <span class="v" id="metaExpiry">—</span>
+        </div>
+        <div class="kv-row">
+          <span class="k">Reads allowed</span>
+          <span class="v">One</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert" style="margin-top:1.25rem">
+      <span class="icon">◆</span>
+      <div>
+        <strong>This page cannot show you the secret.</strong>
+        The decryption key was only ever in the <em>other</em> link — the one you sent. It was never
+        stored here, and it never reached our server.
+      </div>
+    </div>
+
+    <div class="alert alert-warn hidden" id="interceptNote" style="margin-top:.85rem">
+      <span class="icon">⚠</span>
+      <div>
+        <strong>Read it, but your recipient says they didn't?</strong>
+        Then somebody else opened the link. Rotate that credential now — the value of knowing is
+        the whole point of a one-time link.
+      </div>
+    </div>
+
+    <p class="hint" style="text-align:center; margin-top:1.5rem">
+      <a href="/">Create another secret</a>
+    </p>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>burnbox — one-time secrets, encrypted in your browser.</span>
+    <span><a href="https://github.com/TahaBadri-7/burnbox" rel="noopener">Source code</a> &middot; AGPL-3.0</span>
+  </div>
+</footer>
+
+<script src="/creator.js"></script>
 </body>
 </html>
