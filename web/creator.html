@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>burnbox — your secret</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
+    .state { font-size: 1.6rem; font-weight: 600; margin: 1.5rem 0 .5rem; }
+    .unread { color: #1a7f37; }
+    .read   { color: #8250df; }
+    .gone   { color: #b00; }
+    .detail { color: #444; }
+    button { font: inherit; padding: .5rem 1rem; margin-top: 1.5rem; cursor: pointer; }
+    .hint { color: #666; font-size: .85rem; margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Your secret</h1>
+
+  <div class="state" id="status">Checking…</div>
+  <div class="detail" id="detail"></div>
+
+  <button id="refresh">Check again</button>
+
+  <p class="hint">
+    This page only tells you <em>whether</em> the secret has been opened.
+    It cannot show you the secret — the key was never sent to the server,
+    and it isn't in this link.
+  </p>
+
+  <script src="/creator.js"></script>
+</body>
+</html>

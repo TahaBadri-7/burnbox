@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>burnbox</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
+    textarea { width: 100%; height: 6rem; font: inherit; padding: .5rem; }
+    button { font: inherit; padding: .6rem 1.2rem; margin-top: .75rem; cursor: pointer; }
+    .out { margin-top: 2rem; display: none; }
+    .link { background: #f4f4f4; padding: .75rem; word-break: break-all; font-family: monospace; font-size: .85rem; }
+    .label { font-weight: 600; margin-top: 1rem; }
+    .hint { color: #666; font-size: .85rem; margin-top: .25rem; }
+  </style>
+</head>
+<body>
+  <h1>burnbox</h1>
+  <p>Paste a secret. Get a link that works exactly once.</p>
+
+  <textarea id="secret" placeholder="hunter2"></textarea>
+  <button id="create">Create link</button>
+
+  <div class="out" id="out">
+    <div class="label">Send this link</div>
+    <div class="link" id="shareLink"></div>
+    <div class="hint">Works once. The key is in the part after the #, which never reaches the server.</div>
+
+    <div class="label">Keep this link</div>
+    <div class="link" id="creatorLink"></div>
+    <div class="hint">Your copy, for checking whether it has been read.</div>
+  </div>
+
+  <script src="/create.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>burnbox — reveal</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 42rem; margin: 4rem auto; padding: 0 1rem; }
+    button { font: inherit; padding: .6rem 1.2rem; cursor: pointer; }
+    .secret { background: #f4f4f4; padding: 1rem; word-break: break-all; font-family: monospace; margin-top: 1.5rem; display: none; }
+    .warn { color: #b00; margin-top: 1.5rem; display: none; }
+    .hint { color: #666; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <h1>A secret is waiting for you</h1>
+  <p class="hint">Reading it destroys it. There is no second chance, so copy it somewhere safe.</p>
+
+  <button id="reveal">Click to reveal</button>
+
+  <div class="secret" id="secret"></div>
+  <div class="warn" id="warn"></div>
+
+  <script src="/reveal.js"></script>
+</body>
+</html>

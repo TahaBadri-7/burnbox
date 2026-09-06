@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-
 )
 
 const maxBodyBytes = 64 * 1024 // 64KB
@@ -24,10 +23,10 @@ type createRespnse struct {
 }
 
 func handleCreate(w http.ResponseWriter, r *http.Request) {
-	
+
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
-	
+
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
 
 	var req createRequest
@@ -59,7 +58,7 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := save(ctx, shareID, req.Ciphertext, 24*time.Hour); err != nil {
+	if err := save(ctx, shareID, creatorID, req.Ciphertext, 24*time.Hour); err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
@@ -80,7 +79,7 @@ func handleBurn(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
-	
+
 	id := r.PathValue("id")
 
 	ciphertext, err := burn(ctx, id)
@@ -111,3 +110,22 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintln(w, "ok")
 }
+
+func handleStatus(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	st, err := status(ctx, r.PathValue("id"))
+	if errors.Is(err, redis.Nil) {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(st)
+}
+

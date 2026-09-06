@@ -15,8 +15,43 @@ func initRedis(addr string) {
 	})
 }
 
-func save(ctx context.Context, shareID, ciphertext string, ttl time.Duration) error {
-	return rdb.Set(ctx, "secret:"+shareID, ciphertext, ttl).Err()
+func save(ctx context.Context, shareID, creatorID, ciphertext string, ttl time.Duration) error {
+	pipe := rdb.TxPipeline()
+	pipe.Set(ctx, "secret:"+shareID, ciphertext, ttl)
+	pipe.Set(ctx, "creator:"+creatorID, shareID, ttl)
+
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
+type secretStatus struct {
+	Read      bool      `json:"read"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+
+func status(ctx context.Context, creatorID string) (secretStatus, error) {
+	key := "creator:" + creatorID
+
+	shareID, err := rdb.Get(ctx, key).Result()
+	if err != nil {
+		return secretStatus{}, err
+	}
+
+	ttl, err := rdb.TTL(ctx, key).Result()
+	if err != nil {
+		return secretStatus{}, err
+	}
+
+	n, err := rdb.Exists(ctx, "secret:"+shareID).Result()
+	if err != nil {
+		return secretStatus{}, err
+	}
+
+	return secretStatus{
+		Read:      n == 0,
+		ExpiresAt: time.Now().Add(ttl),
+	}, nil
 }
 
 func burn(ctx context.Context, shareID string) (string, error) {

@@ -3,3 +3,4 @@ burnbox
 burnbox.exe
 *.md
 *.exe
+shared-state-and-redis.html
