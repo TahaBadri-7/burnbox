@@ -1,0 +1,7 @@
+.git
+*.exe
+DECISIONS.md
+CLAUDE.md
+README.md
+shared-state-and-redis.html
+LICENSE

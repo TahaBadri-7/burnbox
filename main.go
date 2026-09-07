@@ -5,14 +5,19 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 )
 
 //go:embed web
 var webFS embed.FS
 
 func main() {
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "127.0.0.1:6379"
+	}
 
-	initRedis("127.0.0.1:6379")
+	initRedis(redisAddr)
 
 	mux := http.NewServeMux()
 

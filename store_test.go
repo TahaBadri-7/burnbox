@@ -13,7 +13,7 @@ func TestBurnExactlyOnce(t *testing.T) {
 	ctx := context.Background()
 
 	const id = "race-test-good"
-	if err := save(ctx, id, "hunter2", time.Minute); err != nil {
+	if err := save(ctx, id, "creator-"+id, "hunter2", time.Minute); err != nil {
 		t.Fatal("could not reach Redis:", err)
 	}
 
@@ -45,7 +45,7 @@ func TestBurnBrokenOverServes(t *testing.T) {
 	ctx := context.Background()
 
 	const id = "race-test-broken"
-	if err := save(ctx, id, "hunter2", time.Minute); err != nil {
+	if err := save(ctx, id, "creator-"+id, "hunter2", time.Minute); err != nil {
 		t.Fatal("could not reach Redis:", err)
 	}
 
