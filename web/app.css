@@ -696,3 +696,17 @@ textarea.over { border-color: var(--danger); }
   .card { padding: 1.15rem; border-radius: var(--r); }
   section + section { margin-top: 2.25rem; }
 }
+
+/* --------------------------------------------------------------------------
+   spacing utilities — exist so the pages carry no inline style attributes,
+   which lets the CSP forbid inline styles entirely
+   -------------------------------------------------------------------------- */
+
+.mt-sm  { margin-top: .85rem; }
+.mt     { margin-top: 1rem; }
+.mt-md  { margin-top: 1.25rem; }
+.mt-lg  { margin-top: 1.5rem; }
+.mb-md  { margin-bottom: 1.25rem; }
+.mb-lg  { margin-bottom: 1.5rem; }
+.center { text-align: center; }
+.fs-90  { font-size: .9rem; }

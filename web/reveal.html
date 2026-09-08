@@ -25,7 +25,7 @@
 <main>
   <div class="wrap centered">
 
-    <div class="hero" style="margin-bottom:1.5rem">
+    <div class="hero mb-lg">
       <h1>Someone sent you a secret</h1>
       <p class="lede">It can be opened once. After that it's deleted from the server permanently.</p>
     </div>
@@ -34,7 +34,7 @@
 
       <!-- before reveal -->
       <div id="stage">
-        <div class="alert alert-warn" style="margin-bottom:1.25rem">
+        <div class="alert alert-warn mb-md">
           <span class="icon">⚠</span>
           <div>
             <strong>Have somewhere ready to put it.</strong>
@@ -43,7 +43,7 @@
           </div>
         </div>
 
-        <div id="missingKey" class="alert alert-danger hidden" style="margin-bottom:1.25rem" role="alert">
+        <div id="missingKey" class="alert alert-danger hidden mb-md" role="alert">
           <span class="icon">!</span>
           <div>
             <strong>This link is missing its key.</strong>
@@ -64,7 +64,7 @@
           <button class="btn btn-secondary btn-sm" id="copySecret" type="button">Copy</button>
         </div>
         <div class="secret-out" id="secret"></div>
-        <div class="alert alert-ok" style="margin-top:1rem">
+        <div class="alert alert-ok mt">
           <span class="icon">✓</span>
           <div><strong>Deleted from the server.</strong> This page is now the only place it exists — copy it before you close the tab.</div>
         </div>
@@ -79,14 +79,14 @@
       </div>
 
       <!-- recoverable problem -->
-      <div id="warnBox" class="alert alert-warn hidden" style="margin-top:1.25rem" role="status">
+      <div id="warnBox" class="alert alert-warn hidden mt-md" role="status">
         <span class="icon">⚠</span>
         <div><span id="warnText"></span></div>
       </div>
 
     </div>
 
-    <p class="hint" style="text-align:center; margin-top:1.25rem">
+    <p class="hint center mt-md">
       Never seen this before? <a href="/">burnbox</a> sends passwords through links that work exactly once.
       The sender's browser encrypted this — our server has never seen what's inside it.
     </p>
