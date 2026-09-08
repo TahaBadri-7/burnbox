@@ -29,7 +29,6 @@ type secretStatus struct {
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
-
 func status(ctx context.Context, creatorID string) (secretStatus, error) {
 	key := "creator:" + creatorID
 
@@ -86,4 +85,3 @@ func allow(ctx context.Context, ip string, limit int, window time.Duration) (boo
 
 	return incr.Val() <= int64(limit), nil
 }
-

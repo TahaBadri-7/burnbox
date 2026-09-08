@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
-	"net"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -64,6 +64,10 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// One global integer. No user, no IP, no timestamp — nothing that could
+	// identify anybody. Deliberately the only thing counted anywhere.
+	rdb.Incr(ctx, "stats:created")
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createRespnse{
@@ -92,6 +96,8 @@ func handleBurn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
 		return
 	}
+
+	rdb.Incr(ctx, "stats:burned")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -2,7 +2,9 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    volumes:
+      - redis-data:/data
 
   app:
     build: .
@@ -13,3 +15,6 @@ services:
       - "127.0.0.1:8080:8080"
     depends_on:
       - redis
+
+volumes:
+  redis-data:
