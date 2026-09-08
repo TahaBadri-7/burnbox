@@ -136,8 +136,21 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(st)
 }
 
-// clientIP strips the port off RemoteAddr, which arrives as "1.2.3.4:54321".
+// clientIP returns the address of the real caller.
+//
+// Behind Caddy every request arrives from the proxy, so RemoteAddr is useless
+// for rate limiting. Caddy is configured to OVERWRITE X-Forwarded-For with the
+// address it actually saw, so anything a client tried to put there is already
+// gone. Taking the last entry is belt-and-braces: with one trusted proxy, the
+// last value is always the one the proxy appended.
 func clientIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if i := strings.LastIndex(xff, ","); i >= 0 {
+			xff = xff[i+1:]
+		}
+		return strings.TrimSpace(xff)
+	}
+
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
