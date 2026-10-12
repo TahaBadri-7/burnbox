@@ -1,0 +1,3 @@
+# Keep the embedded frontend out of GitHub's language stats,
+# so the repo is labelled by its backend language (Go).
+web/** linguist-detectable=false
